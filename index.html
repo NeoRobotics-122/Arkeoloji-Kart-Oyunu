@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="tr">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arkeoloji Hafıza Kartı Oyunu</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    * {
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 20px;
+      font-family: 'Times New Roman', Times, serif;
+      background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+      min-height: 100%;
+      height: 100%;
+      color: #2F1B14;
+      width: 100%;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .music-notes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .music-note {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.6;
+      animation: float-up 8s infinite ease-in-out;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translateY(100%) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100%) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .music-note:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 9s; }
+    .music-note:nth-child(2) { left: 25%; animation-delay: 2s; animation-duration: 10s; }
+    .music-note:nth-child(3) { left: 40%; animation-delay: 4s; animation-duration: 8s; }
+    .music-note:nth-child(4) { left: 55%; animation-delay: 1s; animation-duration: 11s; }
+    .music-note:nth-child(5) { left: 70%; animation-delay: 3s; animation-duration: 9s; }
+    .music-note:nth-child(6) { left: 85%; animation-delay: 5s; animation-duration: 10s; }
+
+    .game-wrapper {
+      width: 100%;
+      min-height: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #F5E6D3;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      border: 3px solid #8B4513;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .game-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #8B4513;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .instructions {
+      font-size: 1.1rem;
+      color: #5D4037;
+      margin-bottom: 20px;
+    }
+
+    .score-board {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      background: #E8D5C4;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      border: 2px solid #8B4513;
+    }
+
+    .score-item {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .lives-counter {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 1.3rem;
+      color: #C62828;
+      padding-top: 10px;
+      border-top: 2px solid #8B4513;
+      margin-top: 10px;
+    }
+
+    .flashcard {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 2px solid #D2691E;
+    }
+
+    .artifact-display {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .artifact-image {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 20px;
+      background: #F0F0F0;
+      border: 3px solid #8B4513;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .artifact-image:hover {
+      transform: scale(1.05);
+    }
+
+    .question-text {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #8B4513;
+      margin-bottom: 20px;
+    }
+
+    .options-container {
+      display: grid;
+      gap: 15px;
+    }
+
+    .option-button {
+      background: #E8D5C4;
+      border: 2px solid #8B4513;
+      border-radius: 8px;
+      padding: 15px 20px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+      font-family: inherit;
+      color: #2F1B14;
+    }
+
+    .option-button:hover:not(:disabled) {
+      background: #D2691E;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .option-button.correct {
+      background: #4CAF50;
+      color: white;
+      border-color: #45a049;
+    }
+
+    .option-button.incorrect {
+      background: #f44336;
+      color: white;
+      border-color: #da190b;
+    }
+
+    .option-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .feedback.correct {
+      background: #C8E6C9;
+      color: #2E7D32;
+      border: 2px solid #4CAF50;
+    }
+
+    .feedback.incorrect {
+      background: #FFCDD2;
+      color: #C62828;
+      border: 2px solid #f44336;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .control-button {
+      background: #8B4513;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      font-weight: bold;
+    }
+
+    .control-button:hover {
+      background: #D2691E;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .completion-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completion-screen h2 {
+      font-size: 2.5rem;
+      color: #8B4513;
+      margin-bottom: 20px;
+    }
+
+    .completion-screen p {
+      font-size: 1.3rem;
+      color: #5D4037;
+      margin-bottom: 30px;
+    }
+
+    .game-over-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .game-over-screen h2 {
+      font-size: 2.5rem;
+      color: #C62828;
+      margin-bottom: 20px;
+    }
+
+    .game-over-screen p {
+      font-size: 1.3rem;
+      color: #5D4037;
+      margin-bottom: 30px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .emoji-celebration {
+      position: fixed;
+      font-size: 3rem;
+      pointer-events: none;
+      z-index: 1000;
+      animation: celebrate 2s ease-out forwards;
+    }
+
+    @keyframes celebrate {
+      0% {
+        transform: translateY(0) scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(-100px) scale(1.5) rotate(180deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-200px) scale(0.5) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .emoji-wrong {
+      position: fixed;
+      font-size: 3rem;
+      pointer-events: none;
+      z-index: 1000;
+      animation: shake-fall 1.5s ease-out forwards;
+    }
+
+    @keyframes shake-fall {
+      0%, 10%, 20%, 30% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+      }
+      5%, 15%, 25% {
+        transform: translateX(-10px) translateY(0) rotate(-5deg);
+      }
+      10%, 20% {
+        transform: translateX(10px) translateY(0) rotate(5deg);
+      }
+      40% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(0) translateY(200px) rotate(20deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shake-screen {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .shake-animation {
+      animation: shake-screen 0.5s ease-in-out;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="music-notes">
+   <div class="music-note">
+    🎵
+   </div>
+   <div class="music-note">
+    🎶
+   </div>
+   <div class="music-note">
+    🎵
+   </div>
+   <div class="music-note">
+    🎶
+   </div>
+   <div class="music-note">
+    🎵
+   </div>
+   <div class="music-note">
+    🎶
+   </div>
+  </div>
+  <div class="game-wrapper">
+   <div class="game-container">
+    <div class="header">
+     <h1 class="game-title" id="gameTitle">Arkeoloji Hafıza Kartı</h1>
+     <p class="instructions" id="instructionsText">Türkiye'nin tarihi eserlerini keşfetmeye hazır mısın? NeoRobotics takımı sunar.</p>
+    </div>
+    <div class="score-board">
+     <div class="score-item" style="grid-column: 1 / -1; text-align: center; font-size: 1.4rem; color: #8B4513; margin-bottom: 10px;">
+      Seviye: <span id="levelDisplay">1</span> / 5 🏆
+     </div>
+     <div class="score-item">
+      Soru: <span id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
+     </div>
+     <div class="score-item">
+      Kalan Süre: <span id="timeCounter">5:00</span> ⏱️
+     </div>
+     <div class="score-item">
+      Doğru: <span id="correctCount">0</span>
+     </div>
+     <div class="score-item">
+      Yanlış: <span id="incorrectCount">0</span>
+     </div>
+     <div class="score-item" style="grid-column: 1 / -1; text-align: center; font-size: 1.5rem; color: #D2691E; font-weight: bold; margin-top: 10px;">
+      Puan: <span id="scoreDisplay">0</span> 🌟
+     </div>
+     <div class="lives-counter">
+      Kalan Hak: <span id="livesCount">3</span> ❤️
+     </div>
+    </div>
+    <div id="gameArea">
+     <div class="flashcard">
+      <div class="artifact-display">
+       <div class="artifact-image" id="artifactImage">
+        🏛️
+       </div>
+      </div>
+      <div class="question-text" id="questionText">
+       Bu eser hangi medeniyete aittir
+      </div>
+      <div class="options-container" id="optionsContainer"></div>
+      <div id="feedbackArea"></div>
+     </div>
+     <div class="controls"><button class="control-button hidden" id="nextButton">Sonraki Soru</button>
+     </div>
+    </div>
+    <div id="completionScreen" class="completion-screen hidden">
+     <h2>🎉 Tebrikler!</h2>
+     <p>Oyunu başarıyla tamamladınız!</p>
+     <p style="font-size: 2rem; color: #D2691E; font-weight: bold;">Toplam Puan: <span id="finalScore">0</span> 🌟</p>
+     <p>Doğru Cevaplar: <span id="finalCorrect">0</span></p>
+     <p>Yanlış Cevaplar: <span id="finalIncorrect">0</span></p><button class="control-button" id="restartButton">Yeniden Başla</button>
+    </div>
+    <div id="gameOverScreen" class="game-over-screen hidden">
+     <h2>😔 Oyun Bitti!</h2>
+     <p>5 canınızı da kaybettiniz!</p>
+     <p style="font-size: 2rem; color: #D2691E; font-weight: bold;">Toplam Puan: <span id="gameOverScore">0</span> 🌟</p>
+     <p>Doğru Cevaplar: <span id="gameOverCorrect">0</span></p>
+     <p>Yanlış Cevaplar: <span id="gameOverIncorrect">0</span></p><button class="control-button" id="gameOverRestartButton">Tekrar Dene</button>
+    </div>
+    <div id="timeUpScreen" class="game-over-screen hidden">
+     <h2>⏰ Süre Doldu!</h2>
+     <p>Seviye süreniz (5 dakika) bitti!</p>
+     <p style="font-size: 2rem; color: #D2691E; font-weight: bold;">Toplam Puan: <span id="timeUpScore">0</span> 🌟</p>
+     <p>Doğru Cevaplar: <span id="timeUpCorrect">0</span></p>
+     <p>Yanlış Cevaplar: <span id="timeUpIncorrect">0</span></p><button class="control-button" id="timeUpRestartButton">Baştan Başla</button>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      game_title: "ARKEOLOJİ HAFIZA KARTLARI",
+      instructions_text: "Türkiye'nin tarihi eserlerini keşfetmeye hazır mısın? NeoRobotics takımı sunar.",
+      next_button_text: "Sonraki Soru",
+      restart_button_text: "Yeniden Başla",
+      background_color: "#8B4513",
+      surface_color: "#F5E6D3",
+      text_color: "#2F1B14",
+      primary_action_color: "#8B4513",
+      secondary_action_color: "#D2691E"
+    };
+
+    const questions = [
+      // Seviye 1 - Sorular 1-10 (Türkiye)
+      {
+        emoji: "🗿",
+        question: "Dünyanın en eski tapınağı olarak bilinen Göbeklitepe hangi ilde bulunur",
+        options: ["Mardin", "Şanlıurfa", "Gaziantep", "Diyarbakır"],
+        correct: 1,
+        explanation: "Göbeklitepe, Şanlıurfa'da bulunur ve MÖ 9600 yıllarına tarihlenir. UNESCO Dünya Mirası Listesi'nde yer alır."
+      },
+      {
+        emoji: "🏛️",
+        question: "Artemis Tapınağı hangi antik kentte bulunmaktadır",
+        options: ["Efes", "Milet", "Bergama", "Assos"],
+        correct: 0,
+        explanation: "Artemis Tapınağı, Efes'te bulunur ve Antik Çağ'ın Yedi Harikası'ndan biridir."
+      },
+      {
+        emoji: "🐴",
+        question: "Truva Atı hikayesiyle ünlü Troya antik kenti hangi ilimizdedir",
+        options: ["İzmir", "Aydın", "Çanakkale", "Balıkesir"],
+        correct: 2,
+        explanation: "Troya antik kenti, Çanakkale'nin Tevfikiye köyünde bulunur. Homeros'un İlyada destanında anlatılır."
+      },
+      {
+        emoji: "🗻",
+        question: "Nemrut Dağı'ndaki dev heykeller hangi krallığa aittir",
+        options: ["Lidya", "Frigyalılar", "Kommagene", "Urartu"],
+        correct: 2,
+        explanation: "Nemrut Dağı heykelleri, Kommagene Krallığı dönemine aittir. Kral I. Antiochos tarafından MÖ 62'de yaptırılmıştır."
+      },
+      {
+        emoji: "🏘️",
+        question: "Çatalhöyük Neolitik yerleşimi hangi ilimizdedir",
+        options: ["Ankara", "Konya", "Kayseri", "Aksaray"],
+        correct: 1,
+        explanation: "Çatalhöyük, Konya'nın Çumra ilçesinde bulunur ve MÖ 7400-5200 yılları arasına tarihlenir."
+      },
+      {
+        emoji: "⛰️",
+        question: "Kapadokya'nın ünlü kaya kilise ve yeraltı şehirleri hangi bölgededir",
+        options: ["Nevşehir", "Kırşehir", "Niğde", "Hepsi"],
+        correct: 3,
+        explanation: "Kapadokya bölgesi Nevşehir, Kırşehir ve Niğde illerinde yer alır. Bu bölge peri bacaları ve yeraltı şehirleriyle ünlüdür."
+      },
+      {
+        emoji: "🏛️",
+        question: "Hititler'in başkenti Hattuşaş hangi ilimizdedir",
+        options: ["Ankara", "Çorum", "Kırıkkale", "Yozgat"],
+        correct: 1,
+        explanation: "Hattuşaş, Çorum'da bulunur ve Hitit İmparatorluğu'nun başkentiydi. UNESCO Dünya Mirası Listesi'ndedir."
+      },
+      {
+        emoji: "🎭",
+        question: "Aspendos Antik Tiyatrosu hangi ilimizdedir",
+        options: ["Muğla", "Antalya", "Mersin", "Adana"],
+        correct: 1,
+        explanation: "Aspendos Antik Tiyatrosu, Antalya'da bulunur ve dünyanın en iyi korunmuş antik tiyatrolarından biridir."
+      },
+      {
+        emoji: "🚪",
+        question: "Aslan Kapısı ile ünlü Hitit kenti Alacahöyük nerededir",
+        options: ["Ankara", "Çorum", "Sivas", "Tokat"],
+        correct: 1,
+        explanation: "Alacahöyük, Çorum'da bulunur ve Sfenks Kapısı ile Aslan Kapısı'yla ünlüdür. Hitit dönemine aittir."
+      },
+      {
+        emoji: "👑",
+        question: "Kral Midas'ın mezarının bulunduğu Gordion hangi ilimizdedir",
+        options: ["Ankara", "Eskişehir", "Afyon", "Kütahya"],
+        correct: 0,
+        explanation: "Gordion, Ankara'nın Polatlı ilçesinde bulunur. Frigyalılar'ın başkentiydi ve efsanevi Kral Midas burada hüküm sürmüştür."
+      },
+      // Seviye 2 - Sorular 11-20 (Türkiye)
+      {
+        emoji: "🎨",
+        question: "Zeugma Mozaik Müzesi hangi ilimizdedir",
+        options: ["Gaziantep", "Adıyaman", "Malatya", "Şanlıurfa"],
+        correct: 0,
+        explanation: "Zeugma Mozaik Müzesi, Gaziantep'tedir ve dünyanın en büyük mozaik müzelerinden biridir."
+      },
+      {
+        emoji: "🕌",
+        question: "Harran Üniversitesi kalıntıları hangi şehrimizdedir",
+        options: ["Urfa", "Mardin", "Diyarbakır", "Batman"],
+        correct: 0,
+        explanation: "Harran, Şanlıurfa'da bulunur. Tarihte ilk üniversitelerden biri burada kurulmuştur."
+      },
+      {
+        emoji: "💰",
+        question: "Lidya Krallığı'nın başkenti neresidir",
+        options: ["İzmir", "Manisa", "Uşak", "Denizli"],
+        correct: 1,
+        explanation: "Lidya Krallığı'nın başkenti Sardes'tir (Manisa). Dünyanın ilk madeni parasının basıldığı yerdir."
+      },
+      {
+        emoji: "🏔️",
+        question: "Urartu Krallığı'nın merkezi hangi bölgeydi",
+        options: ["Erzurum", "Van", "Ağrı", "Kars"],
+        correct: 1,
+        explanation: "Urartu Krallığı'nın merkezi Van Gölü çevresi idi. Van Kalesi bu medeniyetin önemli yapılarından biridir."
+      },
+      {
+        emoji: "🏟️",
+        question: "Perge Antik Kenti hangi ilimizdedir",
+        options: ["Antalya", "Muğla", "Aydın", "İzmir"],
+        correct: 0,
+        explanation: "Perge, Antalya'dadır. Roma döneminin en önemli şehirlerinden biriydi ve görkemli tiyatrosu ve stadyumu vardır."
+      },
+      {
+        emoji: "♨️",
+        question: "Hierapolis Antik Kenti ve Pamukkale hangi ildedir",
+        options: ["Aydın", "Muğla", "Denizli", "Afyon"],
+        correct: 2,
+        explanation: "Hierapolis ve Pamukkale, Denizli'dedir. Termal kaynakları ve beyaz travertenleriyle ünlüdür."
+      },
+      {
+        emoji: "⛪",
+        question: "Sümela Manastırı hangi ilimizdedir",
+        options: ["Trabzon", "Rize", "Artvin", "Gümüşhane"],
+        correct: 0,
+        explanation: "Sümela Manastırı, Trabzon'un Maçka ilçesindedir. Dağın yamacına kurulmuş muhteşem bir Bizans yapısıdır."
+      },
+      {
+        emoji: "🏺",
+        question: "Afrodisias Antik Kenti hangi ilimizde bulunur",
+        options: ["Muğla", "Aydın", "Denizli", "Manisa"],
+        correct: 1,
+        explanation: "Afrodisias, Aydın'ın Karacasu ilçesindedir. Aşk tanrıçası Afrodit'e adanmış bir kenttir."
+      },
+      {
+        emoji: "📚",
+        question: "Bergama Akropolü hangi ilimizdedir",
+        options: ["İzmir", "Manisa", "Balıkesir", "Çanakkale"],
+        correct: 0,
+        explanation: "Bergama Akropolü, İzmir'dedir. Antik dünyanın en önemli kütüphanelerinden birine ev sahipliği yapmıştır."
+      },
+      {
+        emoji: "⚓",
+        question: "Knidos Antik Kenti hangi ilimizdedir",
+        options: ["Muğla", "Aydın", "İzmir", "Antalya"],
+        correct: 0,
+        explanation: "Knidos, Muğla'nın Datça yarımadasındadır. Ünlü antik gözlemevi ve limanlarıyla bilinir."
+      },
+      // Seviye 3 - Sorular 21-30 (Türkiye)
+      {
+        emoji: "🏛️",
+        question: "Miletos Antik Kenti hangi ilimizdedir",
+        options: ["Aydın", "İzmir", "Muğla", "Manisa"],
+        correct: 0,
+        explanation: "Miletos, Aydın'ın Didim ilçesindedir. Antik çağın en önemli felsefe merkezlerinden biriydi."
+      },
+      {
+        emoji: "🏺",
+        question: "Priene Antik Kenti hangi ilimizdedir",
+        options: ["Aydın", "İzmir", "Muğla", "Denizli"],
+        correct: 0,
+        explanation: "Priene, Aydın'ın Söke ilçesindedir. İon şehir planlamasının en güzel örneğidir."
+      },
+      {
+        emoji: "☀️",
+        question: "Didim'deki Apollon Tapınağı hangi ildedir",
+        options: ["İzmir", "Aydın", "Muğla", "Manisa"],
+        correct: 1,
+        explanation: "Apollon Tapınağı, Aydın'ın Didim ilçesindedir. Antik dünyanın en büyük tapınaklarından biriydi."
+      },
+      {
+        emoji: "🗿",
+        question: "Karatepe-Aslantaş Açıkhava Müzesi hangi ildedir",
+        options: ["Adana", "Osmaniye", "Hatay", "Kahramanmaraş"],
+        correct: 1,
+        explanation: "Karatepe-Aslantaş, Osmaniye'dedir. Geç Hitit dönemine ait önemli kabartmalar ve yazıtlar içerir."
+      },
+      {
+        emoji: "😴",
+        question: "Eshab-ı Kehf Mağarası hangi ilimizdedir",
+        options: ["Kahramanmaraş", "Adıyaman", "Gaziantep", "Malatya"],
+        correct: 0,
+        explanation: "Eshab-ı Kehf Mağarası, Kahramanmaraş'tadır. Yedi Uyurlar efsanesinin geçtiği yer olarak bilinir."
+      },
+      {
+        emoji: "🏰",
+        question: "Mardin'deki Dara Antik Kenti hangi döneme aittir",
+        options: ["Roma", "Bizans", "Pers", "Asur"],
+        correct: 1,
+        explanation: "Dara Antik Kenti, Bizans dönemine aittir. Önemli bir sınır garnizonu ve ticaret merkeziydi."
+      },
+      {
+        emoji: "🌊",
+        question: "Hasankeyf hangi nehir kıyısındadır",
+        options: ["Fırat", "Dicle", "Murat", "Çoruh"],
+        correct: 1,
+        explanation: "Hasankeyf, Dicle Nehri kıyısındadır. Binlerce yıllık tarihi olan önemli bir yerleşim yeridir."
+      },
+      {
+        emoji: "⛪",
+        question: "Akdamar Kilisesi hangi gölde bulunur",
+        options: ["Van Gölü", "Beyşehir Gölü", "Tuz Gölü", "Sapanca Gölü"],
+        correct: 0,
+        explanation: "Akdamar Kilisesi, Van Gölü'ndeki Akdamar Adası'ndadır. 10. yüzyıl Ermeni mimarisinin şaheseridir."
+      },
+      {
+        emoji: "🏛️",
+        question: "Laodikeia Antik Kenti hangi ilimizdedir",
+        options: ["Denizli", "Afyon", "Uşak", "Manisa"],
+        correct: 0,
+        explanation: "Laodikeia, Denizli'dedir. Antik çağın önemli ticaret ve kültür merkezlerinden biriydi."
+      },
+      {
+        emoji: "⛪",
+        question: "Myra Antik Kenti hangi ilimizdedir",
+        options: ["Antalya", "Muğla", "Mersin", "Isparta"],
+        correct: 0,
+        explanation: "Myra, Antalya'nın Demre ilçesindedir. Noel Baba olarak bilinen Aziz Nikolaos'un piskoposluğunu yaptığı yerdir."
+      },
+      // Seviye 4 - Sorular 31-40 (Dünya Arkeolojisi)
+      {
+        emoji: "🔺",
+        question: "Giza Piramitleri hangi ülkede bulunur",
+        options: ["Mısır", "Sudan", "Ürdün", "İran"],
+        correct: 0,
+        explanation: "Giza Piramitleri, Mısır'dadır ve Antik Dünyanın Yedi Harikası'ndan ayakta kalan tek yapıdır."
+      },
+      {
+        emoji: "🗿",
+        question: "Moai heykelleri hangi adada bulunur",
+        options: ["Hawaii", "Tahiti", "Paskalya Adası", "Fiji"],
+        correct: 2,
+        explanation: "Moai heykelleri, Paskalya Adası'ndadır (Şili). Bu dev taş heykeller Rapa Nui halkı tarafından yapılmıştır."
+      },
+      {
+        emoji: "⛰️",
+        question: "Machu Picchu hangi ülkede yer alır",
+        options: ["Meksika", "Peru", "Şili", "Kolombiya"],
+        correct: 1,
+        explanation: "Machu Picchu, Peru'dadır. İnka İmparatorluğu'nun en ünlü kalıntısıdır ve dağların zirvesinde yer alır."
+      },
+      {
+        emoji: "🐉",
+        question: "Çin Seddi hangi imparator döneminde inşa edilmeye başlandı",
+        options: ["Qin Shi Huang", "Ming", "Tang", "Han"],
+        correct: 0,
+        explanation: "Çin Seddi'nin inşası Qin Shi Huang döneminde MÖ 221'de başladı ve sonraki hanedanlıklarda genişletildi."
+      },
+      {
+        emoji: "⭕",
+        question: "Stonehenge hangi ülkede bulunur",
+        options: ["İrlanda", "İskoçya", "İngiltere", "Galler"],
+        correct: 2,
+        explanation: "Stonehenge, İngiltere'dedir. MÖ 3000 civarında inşa edilen gizemli bir megalitik yapıdır."
+      },
+      {
+        emoji: "🏜️",
+        question: "Petra Antik Kenti hangi ülkede yer alır",
+        options: ["Ürdün", "İsrail", "Lübnan", "Suriye"],
+        correct: 0,
+        explanation: "Petra, Ürdün'dedir. Kayalara oyulmuş bu kırmızı şehir, Nebati Krallığı'nın başkentiydi."
+      },
+      {
+        emoji: "🕌",
+        question: "Angkor Wat tapınağı hangi ülkede bulunur",
+        options: ["Tayland", "Vietnam", "Kamboçya", "Myanmar"],
+        correct: 2,
+        explanation: "Angkor Wat, Kamboçya'dadır. Dünyanın en büyük dini yapısı ve Khmer mimarisinin şaheseridir."
+      },
+      {
+        emoji: "🌋",
+        question: "Pompeii antik kenti hangi yanardağın patlamasıyla yok oldu",
+        options: ["Etna", "Vezüv", "Stromboli", "Vulcano"],
+        correct: 1,
+        explanation: "Pompeii, MS 79'da Vezüv Yanardağı'nın patlamasıyla yok oldu. Kül altında mükemmel korunmuştur."
+      },
+      {
+        emoji: "🏟️",
+        question: "Kolezyum hangi şehirde bulunur",
+        options: ["Atina", "Roma", "İstanbul", "Kahire"],
+        correct: 1,
+        explanation: "Kolezyum, Roma'dadır. MS 80'de tamamlanan bu amfitiyatro 50,000 seyirci kapasitelidir."
+      },
+      {
+        emoji: "🦅",
+        question: "Tikal Antik Kenti hangi medeniyete aittir",
+        options: ["Aztek", "Maya", "İnka", "Olmek"],
+        correct: 1,
+        explanation: "Tikal, Maya medeniyetine aittir ve Guatemala'da bulunur. Maya kentleri arasında en büyüklerinden biridir."
+      },
+      // Seviye 5 - Sorular 41-50 (Dünya Arkeolojisi - Zor)
+      {
+        emoji: "🪖",
+        question: "Terracotta Ordusu hangi Çin imparatorunun mezarında bulundu",
+        options: ["Qin Shi Huang", "Wu Zetian", "Genghis Khan", "Kublai Khan"],
+        correct: 0,
+        explanation: "Terracotta Ordusu, ilk Çin imparatoru Qin Shi Huang'ın mezarında bulundu. 8,000'den fazla asker heykeli vardır."
+      },
+      {
+        emoji: "👑",
+        question: "Tutankamon'un mezarı hangi vadide keşfedildi",
+        options: ["Krallar Vadisi", "Kraliçeler Vadisi", "Mumyalar Vadisi", "Firavunlar Vadisi"],
+        correct: 0,
+        explanation: "Tutankamon'un mezarı 1922'de Howard Carter tarafından Krallar Vadisi'nde keşfedildi."
+      },
+      {
+        emoji: "🌳",
+        question: "Babil'in Asma Bahçeleri hangi kraliçe için yapıldığı söylenir",
+        options: ["Kleopatra", "Nefertiti", "Semiramis", "Hatşepsut"],
+        correct: 2,
+        explanation: "Babil'in Asma Bahçeleri, Kral II. Nebukadnezar tarafından Kraliçe Amytis (Semiramis) için yapıldığı rivayet edilir."
+      },
+      {
+        emoji: "🌊",
+        question: "Efsanevi Atlantis şehri ilk kez kim tarafından anlatıldı",
+        options: ["Homer", "Platon", "Aristoteles", "Herodot"],
+        correct: 1,
+        explanation: "Atlantis şehri ilk kez Platon tarafından 'Timaios' ve 'Kritias' adlı diyaloglarında anlatılmıştır."
+      },
+      {
+        emoji: "🎨",
+        question: "Lascaux mağara resimleri hangi ülkede bulunur",
+        options: ["İspanya", "Portekiz", "Fransa", "İtalya"],
+        correct: 2,
+        explanation: "Lascaux mağara resimleri, Fransa'dadır. 17,000 yıl öncesine ait bu resimler Paleolitik sanatın önemli örnekleridir."
+      },
+      {
+        emoji: "📖",
+        question: "Rosetta Taşı kaç farklı dilde yazı içerir",
+        options: ["2", "3", "4", "5"],
+        correct: 1,
+        explanation: "Rosetta Taşı 3 farklı dilde yazı içerir: Hiyeroglif, Demotik ve Antik Yunanca. Bu sayede hiyeroglifler çözüldü."
+      },
+      {
+        emoji: "🏛️",
+        question: "Akropolis hangi şehirde bulunur",
+        options: ["Sparta", "Atina", "Korint", "Teb"],
+        correct: 1,
+        explanation: "Akropolis, Atina'dadır. Parthenon tapınağını barındıran bu kutsal tepe, antik Yunan medeniyetinin simgesidir."
+      },
+      {
+        emoji: "✍️",
+        question: "Mezopotamya'da ilk yazı sistemi olan çivi yazısını hangi medeniyet geliştirdi",
+        options: ["Babilliler", "Asurlular", "Sümerler", "Persler"],
+        correct: 2,
+        explanation: "Çivi yazısı, MÖ 3200 civarında Sümerler tarafından geliştirildi. İnsanlık tarihinin en eski yazı sistemidir."
+      },
+      {
+        emoji: "🏺",
+        question: "Minoan Medeniyeti hangi adada gelişti",
+        options: ["Girit", "Rodos", "Kıbrıs", "Santorini"],
+        correct: 0,
+        explanation: "Minoan Medeniyeti, MÖ 2700-1450 yılları arasında Girit adasında gelişti. Avrupa'nın en eski medeniyetidir."
+      },
+      {
+        emoji: "📜",
+        question: "Ölüler Kitabı hangi medeniyete aittir",
+        options: ["Maya", "Aztek", "Mısır", "Sümer"],
+        correct: 2,
+        explanation: "Ölüler Kitabı, Antik Mısır'a aittir. Ölülerin öteki dünyaya geçişi için rehberlik eden büyülü metinler içerir."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let lives = 5;
+    let answered = false;
+    let timeElapsed = 0;
+    let timerInterval = null;
+    let currentLevel = 1;
+    let score = 0;
+    let questionStartTime = 0;
+    let levelStartTime = 0;
+    const QUESTIONS_PER_LEVEL = 10;
+    const TOTAL_LEVELS = 5;
+    const POINTS_PER_QUESTION = 5;
+    const SPEED_BONUS = 2;
+    const SPEED_BONUS_THRESHOLD = 5;
+    const LEVEL_TIME_LIMIT = 300;
+
+    function createCelebrationEmojis() {
+      const emojis = ['🎉', '⭐', '🏆', '✨', '🎊', '💫', '🌟', '👏'];
+      const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+      
+      for (let i = 0; i < 15; i++) {
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji-celebration';
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = (containerRect.left + Math.random() * containerRect.width) + 'px';
+        emoji.style.top = (containerRect.top + containerRect.height / 2) + 'px';
+        emoji.style.animationDelay = (i * 0.1) + 's';
+        document.body.appendChild(emoji);
+        
+        setTimeout(() => emoji.remove(), 2000);
+      }
+    }
+
+    function createWrongEmojis() {
+      const emojis = ['😢', '💔', '😔', '❌', '😞'];
+      const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+      const gameContainer = document.querySelector('.game-container');
+      
+      gameContainer.classList.add('shake-animation');
+      setTimeout(() => gameContainer.classList.remove('shake-animation'), 500);
+      
+      for (let i = 0; i < 8; i++) {
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji-wrong';
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = (containerRect.left + Math.random() * containerRect.width) + 'px';
+        emoji.style.top = (containerRect.top + containerRect.height / 3) + 'px';
+        emoji.style.animationDelay = (i * 0.1) + 's';
+        document.body.appendChild(emoji);
+        
+        setTimeout(() => emoji.remove(), 1500);
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      levelStartTime = timeElapsed;
+      timerInterval = setInterval(() => {
+        timeElapsed++;
+        const levelElapsed = timeElapsed - levelStartTime;
+        const timeRemaining = LEVEL_TIME_LIMIT - levelElapsed;
+        
+        if (timeRemaining <= 0) {
+          showTimeUp();
+          return;
+        }
+        
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        document.getElementById('timeCounter').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function updateScoreboard() {
+      const questionInLevel = (currentQuestionIndex % QUESTIONS_PER_LEVEL) + 1;
+      document.getElementById('currentQuestion').textContent = questionInLevel;
+      document.getElementById('totalQuestions').textContent = QUESTIONS_PER_LEVEL;
+      document.getElementById('correctCount').textContent = correctAnswers;
+      document.getElementById('incorrectCount').textContent = incorrectAnswers;
+      document.getElementById('livesCount').textContent = lives;
+      document.getElementById('timeCounter').textContent = timeElapsed;
+      document.getElementById('levelDisplay').textContent = currentLevel;
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function displayQuestion() {
+      const question = questions[currentQuestionIndex];
+      document.getElementById('artifactImage').textContent = question.emoji;
+      document.getElementById('questionText').textContent = question.question;
+      
+      const optionsContainer = document.getElementById('optionsContainer');
+      optionsContainer.innerHTML = '';
+      
+      const shuffledIndices = [];
+      const correctIndex = question.correct;
+      
+      for (let i = 0; i < question.options.length; i++) {
+        shuffledIndices.push(i);
+      }
+      
+      for (let i = shuffledIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
+      }
+      
+      let newCorrectIndex = shuffledIndices.indexOf(correctIndex);
+      
+      shuffledIndices.forEach((originalIndex, newIndex) => {
+        const button = document.createElement('button');
+        button.className = 'option-button';
+        button.textContent = question.options[originalIndex];
+        button.onclick = () => handleAnswer(newIndex, newCorrectIndex);
+        optionsContainer.appendChild(button);
+      });
+
+      document.getElementById('feedbackArea').innerHTML = '';
+      const nextBtn = document.getElementById('nextButton');
+      nextBtn.textContent = window.elementSdk && window.elementSdk.config ? (window.elementSdk.config.next_button_text || defaultConfig.next_button_text) : defaultConfig.next_button_text;
+      nextBtn.classList.add('hidden');
+      answered = false;
+      questionStartTime = timeElapsed;
+      updateScoreboard();
+    }
+
+    function handleAnswer(selectedIndex, correctIndex) {
+      if (answered) return;
+      answered = true;
+
+      const question = questions[currentQuestionIndex];
+      const buttons = document.querySelectorAll('.option-button');
+      const feedbackArea = document.getElementById('feedbackArea');
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === correctIndex) {
+          button.classList.add('correct');
+        } else if (index === selectedIndex) {
+          button.classList.add('incorrect');
+        }
+      });
+
+      const feedback = document.createElement('div');
+      feedback.className = 'feedback';
+
+      if (selectedIndex === correctIndex) {
+        correctAnswers++;
+        const timeTaken = timeElapsed - questionStartTime;
+        let pointsEarned = POINTS_PER_QUESTION;
+        let bonusMessage = '';
+        
+        if (timeTaken <= SPEED_BONUS_THRESHOLD) {
+          pointsEarned += SPEED_BONUS;
+          bonusMessage = ` ⚡ Hız Bonusu +${SPEED_BONUS}!`;
+        }
+        
+        score += pointsEarned;
+        feedback.classList.add('correct');
+        feedback.textContent = `✅ Doğru! Harika iş! +${pointsEarned} Puan${bonusMessage}`;
+        
+        createCelebrationEmojis();
+      } else {
+        incorrectAnswers++;
+        lives--;
+        feedback.classList.add('incorrect');
+        const correctAnswerText = buttons[correctIndex].textContent;
+        feedback.innerHTML = `❌ Yanlış! Doğru cevap: ${correctAnswerText}<br><br>📚 ${question.explanation || ''}`;
+        
+        createWrongEmojis();
+        
+        if (lives <= 0) {
+          setTimeout(showGameOver, 2000);
+          feedbackArea.appendChild(feedback);
+          updateScoreboard();
+          return;
+        }
+      }
+
+      feedbackArea.appendChild(feedback);
+      updateScoreboard();
+
+      if (currentQuestionIndex < questions.length - 1) {
+        document.getElementById('nextButton').classList.remove('hidden');
+      } else {
+        setTimeout(showCompletion, 2000);
+      }
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      
+      if (currentQuestionIndex % QUESTIONS_PER_LEVEL === 0 && currentQuestionIndex < questions.length) {
+        currentLevel++;
+        showLevelComplete();
+        return;
+      }
+      
+      if (currentQuestionIndex < questions.length) {
+        displayQuestion();
+      } else {
+        showCompletion();
+      }
+    }
+
+    function showLevelComplete() {
+      const feedbackArea = document.getElementById('feedbackArea');
+      feedbackArea.innerHTML = '';
+      
+      lives = 5;
+      levelStartTime = timeElapsed;
+      
+      const levelMessage = document.createElement('div');
+      levelMessage.className = 'feedback correct';
+      levelMessage.innerHTML = `🎉 Seviye ${currentLevel - 1} Tamamlandı!<br>Seviye ${currentLevel}'e Geçildi! 🚀<br>💚 Canlarınız Yenilendi! (5/5)<br>⏱️ Yeni seviye için 5 dakikanız var!`;
+      feedbackArea.appendChild(levelMessage);
+      
+      document.getElementById('nextButton').textContent = `Seviye ${currentLevel} Başla`;
+      document.getElementById('nextButton').classList.remove('hidden');
+      updateScoreboard();
+    }
+
+    function getAchievementMessage(finalScore) {
+      if (finalScore <= 50) {
+        return {
+          title: '🌱 Meraklı Başlangıç',
+          message: 'Henüz yolun başındasın genç arkadaşım! Tarihin gizemli dünyası keşfedilmeyi bekliyor. Biraz daha araştırma yapmalı ve ipuçlarını daha dikkatli incelemelisin. Merak ettiklerini bizimle öğrenerek bu maceraya yeniden başlayabilirsin. Pes etmek yok!'
+        };
+      } else if (finalScore <= 100) {
+        return {
+          title: '🔍 Çabalayan Kaşif',
+          message: 'Evet, güzel bir çaba gösteriyorsun Kaşif! Ancak kumların altındaki gerçeğe ulaşmak için biraz daha çalışman gerekecek. Doğru iz üzerindesin, bilgilerini tazeleyip tekrar denediğinde çok daha derinlere inebileceğine eminim.'
+        };
+      } else if (finalScore <= 150) {
+        return {
+          title: '⭐ Yükselen Arkeolog',
+          message: 'Harika gidiyorsun! Arkeolojik eserler ve tarih konusundaki bilgin giderek derinleşiyor. Neredeyse usta bir arkeolog olma yolunda ilerliyorsun. Kazı alanındaki dikkatin ve bilgin seni çok daha ileriye taşıyacak. Başarılarının devamını dilerim!'
+        };
+      } else {
+        return {
+          title: '🏆 Usta Tarih Koruyucusu',
+          message: 'İnanılmazsın Kaşif! Tarihin derinliklerindeki sırları gün yüzüne çıkarmakta üstüne yok. Bu yolda öğrendiklerini arkadaşlarınla paylaştıkça bilgi hazinenin daha da büyüdüğünü göreceksin. Sen gerçek bir tarih koruyucususun, tebrikler!'
+        };
+      }
+    }
+
+    function showCompletion() {
+      stopTimer();
+      document.getElementById('gameArea').classList.add('hidden');
+      const completionScreen = document.getElementById('completionScreen');
+      completionScreen.classList.remove('hidden');
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('finalCorrect').textContent = correctAnswers;
+      document.getElementById('finalIncorrect').textContent = incorrectAnswers;
+      
+      const achievement = getAchievementMessage(score);
+      const achievementDiv = document.createElement('div');
+      achievementDiv.style.cssText = 'margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius: 15px; border: 3px solid #8B4513; box-shadow: 0 5px 20px rgba(0,0,0,0.2);';
+      achievementDiv.innerHTML = `
+        <h3 style="font-size: 2rem; color: #8B4513; margin: 0 0 15px 0;">${achievement.title}</h3>
+        <p style="font-size: 1.1rem; color: #5D4037; line-height: 1.6; margin: 0;">${achievement.message}</p>
+      `;
+      
+      const scoreElement = completionScreen.querySelector('p[style*="font-size: 2rem"]');
+      scoreElement.parentNode.insertBefore(achievementDiv, scoreElement.nextSibling);
+    }
+
+    function showGameOver() {
+      stopTimer();
+      document.getElementById('gameArea').classList.add('hidden');
+      const gameOverScreen = document.getElementById('gameOverScreen');
+      gameOverScreen.classList.remove('hidden');
+      document.getElementById('gameOverScore').textContent = score;
+      document.getElementById('gameOverCorrect').textContent = correctAnswers;
+      document.getElementById('gameOverIncorrect').textContent = incorrectAnswers;
+      
+      const achievement = getAchievementMessage(score);
+      const achievementDiv = document.createElement('div');
+      achievementDiv.style.cssText = 'margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius: 15px; border: 3px solid #8B4513; box-shadow: 0 5px 20px rgba(0,0,0,0.2);';
+      achievementDiv.innerHTML = `
+        <h3 style="font-size: 2rem; color: #8B4513; margin: 0 0 15px 0;">${achievement.title}</h3>
+        <p style="font-size: 1.1rem; color: #5D4037; line-height: 1.6; margin: 0;">${achievement.message}</p>
+      `;
+      
+      const correctElement = gameOverScreen.querySelector('p:nth-of-type(3)');
+      gameOverScreen.insertBefore(achievementDiv, correctElement);
+    }
+
+    function showTimeUp() {
+      stopTimer();
+      document.getElementById('gameArea').classList.add('hidden');
+      const timeUpScreen = document.getElementById('timeUpScreen');
+      timeUpScreen.classList.remove('hidden');
+      document.getElementById('timeUpScore').textContent = score;
+      document.getElementById('timeUpCorrect').textContent = correctAnswers;
+      document.getElementById('timeUpIncorrect').textContent = incorrectAnswers;
+      
+      const achievement = getAchievementMessage(score);
+      const achievementDiv = document.createElement('div');
+      achievementDiv.style.cssText = 'margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius: 15px; border: 3px solid #8B4513; box-shadow: 0 5px 20px rgba(0,0,0,0.2);';
+      achievementDiv.innerHTML = `
+        <h3 style="font-size: 2rem; color: #8B4513; margin: 0 0 15px 0;">${achievement.title}</h3>
+        <p style="font-size: 1.1rem; color: #5D4037; line-height: 1.6; margin: 0;">${achievement.message}</p>
+      `;
+      
+      const correctElement = timeUpScreen.querySelector('p:nth-of-type(3)');
+      timeUpScreen.insertBefore(achievementDiv, correctElement);
+    }
+
+    function restartGame() {
+      stopTimer();
+      currentQuestionIndex = 0;
+      correctAnswers = 0;
+      incorrectAnswers = 0;
+      lives = 5;
+      answered = false;
+      timeElapsed = 0;
+      currentLevel = 1;
+      score = 0;
+      document.getElementById('gameArea').classList.remove('hidden');
+      document.getElementById('completionScreen').classList.add('hidden');
+      document.getElementById('gameOverScreen').classList.add('hidden');
+      document.getElementById('timeUpScreen').classList.add('hidden');
+      displayQuestion();
+      startTimer();
+    }
+
+    document.getElementById('nextButton').addEventListener('click', nextQuestion);
+    document.getElementById('restartButton').addEventListener('click', restartGame);
+    document.getElementById('gameOverRestartButton').addEventListener('click', restartGame);
+    document.getElementById('timeUpRestartButton').addEventListener('click', restartGame);
+
+    async function onConfigChange(config) {
+      const gameTitle = config.game_title || defaultConfig.game_title;
+      const instructionsText = config.instructions_text || defaultConfig.instructions_text;
+      const nextButtonText = config.next_button_text || defaultConfig.next_button_text;
+      const restartButtonText = config.restart_button_text || defaultConfig.restart_button_text;
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryActionColor = config.primary_action_color || defaultConfig.primary_action_color;
+      const secondaryActionColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+      document.getElementById('gameTitle').textContent = gameTitle;
+      document.getElementById('instructionsText').textContent = instructionsText;
+      document.getElementById('nextButton').textContent = nextButtonText;
+      document.getElementById('restartButton').textContent = restartButtonText;
+      document.getElementById('gameOverRestartButton').textContent = restartButtonText;
+      document.getElementById('timeUpRestartButton').textContent = restartButtonText;
+
+      document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, ${secondaryActionColor} 100%)`;
+      document.body.style.color = textColor;
+      document.querySelector('.game-container').style.background = surfaceColor;
+      
+      document.querySelectorAll('.control-button').forEach(button => {
+        button.style.background = primaryActionColor;
+      });
+
+      document.querySelectorAll('.option-button:not(.correct):not(.incorrect)').forEach(button => {
+        button.style.borderColor = primaryActionColor;
+      });
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: defaultConfig,
+        onConfigChange: onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.primary_action_color || defaultConfig.primary_action_color,
+              set: (value) => {
+                config.primary_action_color = value;
+                window.elementSdk.setConfig({ primary_action_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+              set: (value) => {
+                config.secondary_action_color = value;
+                window.elementSdk.setConfig({ secondary_action_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["game_title", config.game_title || defaultConfig.game_title],
+          ["instructions_text", config.instructions_text || defaultConfig.instructions_text],
+          ["next_button_text", config.next_button_text || defaultConfig.next_button_text],
+          ["restart_button_text", config.restart_button_text || defaultConfig.restart_button_text]
+        ])
+      });
+    }
+
+    displayQuestion();
+    startTimer();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a74641655e83e85',t:'MTc2NDYxMTA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
