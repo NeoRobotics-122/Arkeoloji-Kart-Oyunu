@@ -89,7 +89,51 @@
 
     .header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+    }
+
+    /* YENİ EKLENEN CSS: Müzik Butonu */
+    .music-control-btn {
+      background: #5D4037;
+      color: #F5E6D3;
+      border: 2px solid #8B4513;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .music-control-btn:hover {
+        background: #8B4513;
+        transform: scale(1.05);
+    }
+
+    /* YENİ EKLENEN CSS: Geri Bildirim Linki */
+    .feedback-section {
+        margin-top: 30px;
+        padding-top: 15px;
+        border-top: 2px dashed #8B4513;
+        text-align: center;
+    }
+    .feedback-link {
+        color: #8B4513;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+        display: inline-block;
+        padding: 5px 10px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    .feedback-link:hover {
+        background-color: #8B4513;
+        color: #F5E6D3;
+        text-decoration: none;
     }
 
     .game-title {
@@ -103,7 +147,7 @@
     .instructions {
       font-size: 1.1rem;
       color: #5D4037;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     .score-board {
@@ -364,31 +408,30 @@
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
  </head>
  <body>
+  
+  <audio id="bgMusic" loop>
+      <source src="https://assets.mixkit.co/music/preview/mixkit-mystery-search-2523.mp3" type="audio/mp3">
+      Tarayıcınız ses elementini desteklemiyor.
+  </audio>
+
   <div class="music-notes">
-   <div class="music-note">
-    🎵
-   </div>
-   <div class="music-note">
-    🎶
-   </div>
-   <div class="music-note">
-    🎵
-   </div>
-   <div class="music-note">
-    🎶
-   </div>
-   <div class="music-note">
-    🎵
-   </div>
-   <div class="music-note">
-    🎶
-   </div>
+   <div class="music-note">🎵</div>
+   <div class="music-note">🎶</div>
+   <div class="music-note">🎵</div>
+   <div class="music-note">🎶</div>
+   <div class="music-note">🎵</div>
+   <div class="music-note">🎶</div>
   </div>
   <div class="game-wrapper">
    <div class="game-container">
     <div class="header">
      <h1 class="game-title" id="gameTitle">Arkeoloji Hafıza Kartı</h1>
      <p class="instructions" id="instructionsText">Türkiye'nin tarihi eserlerini keşfetmeye hazır mısın? NeoRobotics takımı sunar.</p>
+     
+     <button id="musicToggleBtn" class="music-control-btn">
+        🎵 Müziği Başlat
+     </button>
+
     </div>
     <div class="score-board">
      <div class="score-item" style="grid-column: 1 / -1; text-align: center; font-size: 1.4rem; color: #8B4513; margin-bottom: 10px;">
@@ -450,6 +493,14 @@
      <p>Doğru Cevaplar: <span id="timeUpCorrect">0</span></p>
      <p>Yanlış Cevaplar: <span id="timeUpIncorrect">0</span></p><button class="control-button" id="timeUpRestartButton">Baştan Başla</button>
     </div>
+
+    <div class="feedback-section">
+        <p style="color:#5D4037; margin-bottom:5px;">Oyunumuzu geliştirmemize yardım edin:</p>
+        <a href="https://docs.google.com/forms" target="_blank" class="feedback-link" id="feedbackLink">
+            📝 Oyunu Değerlendir / Geri Bildirim Formu
+        </a>
+    </div>
+
    </div>
   </div>
   <script>
@@ -840,6 +891,27 @@
     const SPEED_BONUS = 2;
     const SPEED_BONUS_THRESHOLD = 5;
     const LEVEL_TIME_LIMIT = 300;
+
+    // YENİ EKLENEN KOD: Müzik Kontrol Logic
+    const bgMusic = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicToggleBtn');
+    let isMusicPlaying = false;
+
+    musicBtn.addEventListener('click', () => {
+        if (isMusicPlaying) {
+            bgMusic.pause();
+            musicBtn.textContent = '🎵 Müziği Başlat';
+            isMusicPlaying = false;
+        } else {
+            bgMusic.play().then(() => {
+                musicBtn.textContent = '🔇 Müziği Sustur';
+                isMusicPlaying = true;
+            }).catch(e => {
+                console.log("Ses oynatma hatası (Tarayıcı izni gerekebilir):", e);
+                alert("Müzik başlatılamadı. Lütfen tarayıcı izinlerini kontrol edin.");
+            });
+        }
+    });
 
     function createCelebrationEmojis() {
       const emojis = ['🎉', '⭐', '🏆', '✨', '🎊', '💫', '🌟', '👏'];
@@ -1253,5 +1325,5 @@
     displayQuestion();
     startTimer();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a74641655e83e85',t:'MTc2NDYxMTA1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ </body>
 </html>
