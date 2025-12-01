@@ -1327,34 +1327,10 @@
     displayQuestion();
     startTimer();
   </script>
-  <script>
-  // Sayfa tamamen yüklendiğinde çalış
-  document.addEventListener('DOMContentLoaded', function() {
-      
-      // Senin HTML'deki ID'lerini kullanarak elementleri seçiyoruz
-      var sesDosyasi = document.getElementById("bgMusic");
-      var muzikButonu = document.getElementById("musicToggleBtn");
 
-      // Butona tıklama özelliği ekliyoruz
-      muzikButonu.addEventListener("click", function() {
-          
-          // Eğer ses duruyorsa (paused) -> Çal
-          if (sesDosyasi.paused) {
-              sesDosyasi.play();
-              // Buton yazısını değiştir (İstersen burayı silebilirsin)
-              muzikButonu.innerHTML = "⏸ Müziği Durdur"; 
-          } 
-          // Eğer ses çalıyorsa -> Durdur
-          else {
-              sesDosyasi.pause();
-              // Buton yazısını eski haline getir
-              muzikButonu.innerHTML = "🎵 Müziği Başlat";
-          }
-      });
-  });
-</script>
  </body>
 </html>
+
 
 
 
